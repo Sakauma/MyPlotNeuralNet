@@ -5,7 +5,9 @@
 % Can be used for conv, deconv etc
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \tikzset{Box/.pic={\tikzset{/boxblock/.cd,#1}
-        \tikzstyle{box}=[every edge/.append style={pic actions, densely dashed, opacity=.7},fill opacity=\opacity, pic actions,fill=\fill]
+        %\tikzstyle{box}=[every edge/.append style={pic actions, densely dashed, 
+        \tikzstyle{box}=[every edge/.append style={pic actions,
+        opacity=.7, line width=1.2pt},fill opacity=\opacity, pic actions,fill=\fill]
         
         \pgfmathsetmacro{\y}{\cubey*\scale}
         \pgfmathsetmacro{\z}{\cubez*\scale}
@@ -25,14 +27,16 @@
             \coordinate (f) at (\k    ,-\y/2 ,-\z/2); 
             \coordinate (g) at (\k-\x ,-\y/2 ,-\z/2); 
             \coordinate (h) at (\k-\x , \y/2 ,-\z/2); 
-        
+            
+            % 去掉遮挡线
             \draw [box] 
+            %\draw [box, name path global=\name] 
                 (d) -- (a) -- (b) -- (c) -- cycle     
                 (d) -- (a) -- (h) -- (e) -- cycle
                 %dotted edges
-                (f) edge (g)
-                (b) edge (g)
-                (h) edge (g)    
+                %(f) edge (g)
+                %(b) edge (g)
+                %(h) edge (g)    
             ;
             \path (b) edge ["\xlabel"',midway] (c);
             
@@ -45,7 +49,8 @@
         \tikzstyle{depthlabel}=[pos=0,text width=14*\z,text centered,sloped]       
         
         \path (c) edge ["\small\zlabel"',depthlabel](f); %depth label
-        \path (b1) edge ["\ylabel",midway] (a1);  %height label
+        %\path (b1) edge ["\ylabel",midway] (a1);  %height label
+        \path (b1) -- (a1) node[pos=\labelpos, sloped, anchor=south, font=\small, yshift=\labelyshift] {\ylabel};
         
         
         \tikzstyle{captionlabel}=[text width=15*\LastEastx/\scale,text centered]       
@@ -96,6 +101,8 @@
     name/.store         in=\name,
     fill/.store         in=\fill,
     opacity/.store      in=\opacity,
+    labelpos/.store       in=\labelpos,
+    labelyshift/.store    in=\labelyshift,
     fill={rgb:red,5;green,5;blue,5;white,15},
     opacity=0.4,
     width=2,
@@ -107,4 +114,6 @@
     zlabel=,
     caption=,
     name=,
+    labelpos=0.9,
+    labelyshift=-2pt,
 }

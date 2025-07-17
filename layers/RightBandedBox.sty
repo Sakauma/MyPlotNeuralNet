@@ -6,9 +6,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \tikzset{RightBandedBox/.pic={\tikzset{/block/.cd,#1}
                 
-        \tikzstyle{box}=[every edge/.append style={pic actions, densely dashed, opacity=.7},fill opacity=\opacity, pic actions,fill=\fill]
+        %\tikzstyle{box}=[every edge/.append style={pic actions, densely dashed, 
+        \tikzstyle{box}=[every edge/.append style={pic actions,
+        opacity=.7},fill opacity=\opacity, pic actions,fill=\fill]
         
-        \tikzstyle{band}=[every edge/.append style={pic actions, densely dashed, opacity=.7},fill opacity=\bandopacity, pic actions,fill=\bandfill,draw=\bandfill]
+        %\tikzstyle{band}=[every edge/.append style={pic actions, densely dashed,
+        \tikzstyle{band}=[every edge/.append style={pic actions, 
+        opacity=.7, line width=1.2pt},fill opacity=\bandopacity, pic %actions,fill=\bandfill,draw=\bandfill]
+        actions,fill=\bandfill,draw=none]
         
         \pgfmathsetmacro{\y}{\cubey*\scale}
         \pgfmathsetmacro{\z}{\cubez*\scale}
@@ -33,14 +38,17 @@
             \coordinate (hrt)   at (\k-\x/3 , \y/2 ,-\z/2); %h_right_third
             
             %fill box color 			
-            \draw [box] 
+            \draw [box]
+            %\draw [box, name path global=\name]
                 (d) -- (a) -- (b) -- (c) -- cycle     
                 (d) -- (a) -- (h) -- (e) -- cycle;
             %dotted edges
             \draw [box]
-                (f) edge (g)
-                (b) edge (g)
-                (h) edge (g);
+                % 去掉遮挡线
+                %(f) edge (g)
+                %(b) edge (g)
+                %(h) edge (g)
+                ;
             %fill band color    
             \draw [band] 
                 (d) -- (art) -- (brt) -- (c) -- cycle     
@@ -63,7 +71,8 @@
         \tikzstyle{depthlabel}=[pos=0,text width=14*\z,text centered,sloped]       
         
         \path (c) edge ["\small\zlabels"',depthlabel](f); %depth label
-        \path (b1) edge ["\ylabel",midway] (a1);  %height label 	  
+        %\path (b1) edge ["\ylabel",midway] (a1);  %height label 
+        \path (b1) -- (a1) node[pos=\labelpos, sloped, anchor=south, font=\small, yshift=\labelyshift] {\ylabel};
         
         \tikzstyle{captionlabel}=[text width=15*\LastEastx/\scale,text centered] 
         \path (\LastEastx/2,-\y/2,+\z/2) + (0,-25pt) coordinate (cap) 
@@ -114,10 +123,12 @@
     bandfill/.store     in=\bandfill,
     opacity/.store      in=\opacity,
     bandopacity/.store  in=\bandopacity,
+    labelpos/.store       in=\labelpos,
+    labelyshift/.store    in=\labelyshift,
     fill={rgb:red,5;green,5;blue,5;white,15},
     bandfill={rgb:red,5;green,5;blue,5;white,5},
-    opacity=0.4,
-    bandopacity=0.6,
+    opacity=0.5,
+    bandopacity=0,
     width=2,
     height=13,
     depth=15,
