@@ -1,0 +1,115 @@
+\documentclass[border=15pt, multi, tikz]{standalone}
+
+% 加载所需的包和库
+\usepackage{import}
+\usetikzlibrary{positioning, calc, decorations.markings}
+
+% 假设您的 init.tex 位于上一级的 layers 文件夹中
+\subimport{../layers/}{init} 
+
+% --- 颜色定义 ---
+\definecolor{InputColor}{RGB}{200,200,200}
+\definecolor{ConvColor}{RGB}{156,201,229}
+\definecolor{ConvReluColor}{RGB}{179,205,224}
+\definecolor{TSMColor}{RGB}{255,228,181}
+\definecolor{SumColor}{RGB}{150,223,150}
+\definecolor{DWInvColor}{RGB}{178,223,219} % 为DepthWise Inverse模块定义新颜色 (青色)
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{main}
+\pgfsetlayers{background,main}
+
+
+\begin{document}
+
+\begin{tikzpicture}[
+    block/.style={font=\Large},
+    connection/.style={
+        ultra thick, 
+        draw=black, 
+        opacity=0.6,
+        -latex
+    },
+    midarrow/.style={
+        decoration={
+            markings,
+            mark=at position 0.5 with {\arrow{latex}}
+        },
+        postaction={decorate}
+    }
+]
+
+% ====================================================================================
+%                     全局变量定义
+% ====================================================================================
+\def\zshift{4.0}  % 稍微增加Z轴偏移，让长分支更清晰
+\def\xposA{0.0}   % 第1列位置
+\def\xposB{3}   % 第2列位置
+\def\xposC{6}   % 第3列位置
+\def\xposD{9}  % 第4列位置 (两个分支的对齐终点)
+\def\xposE{12}  % Sum模块位置
+
+
+% ====================================================================================
+%                            Stage 1: Module Definitions
+% ====================================================================================
+\begin{pgfonlayer}{main}
+% --- 分支2: 底部 (2个模块, 与顶部对齐) ---
+\pic at (\xposA, 0, -\zshift) {RightBandedBox={name=conv3x3_1, fill=ConvColor, bandfill=ConvReluColor, height=22, width={4,0}, depth=22, xlabel={{"3$\times$3$\times$3 Conv",""}}, ylabel=}};
+\pic at (\xposD, 0, -\zshift) {RightBandedBox={name=conv3x3_2, fill=ConvColor, bandfill=ConvReluColor, height=22, width={4,0}, depth=22, xlabel={{"3$\times$3$\times$3 Conv",""}}, ylabel=}};
+
+% --- 分支1: 顶部 (4个模块) ---
+\pic at (\xposA, 0, \zshift) {RightBandedBox={name=conv1x1, fill=ConvColor, bandfill=ConvReluColor, height=22, width={4,0}, depth=22, xlabel={{"1$\times$1$\times$1 Conv",""}}, ylabel=}};
+\pic at (\xposB, 0, \zshift) {Box={name=dwinv1, fill=DWInvColor, height=22, width=4, depth=22, xlabel={{"DepthWise Inverse",""}}, ylabel=}};
+\pic at (\xposC, 0, \zshift) {Box={name=tsm, fill=TSMColor, height=22, width=4, depth=22, xlabel={{"TSM",""}}, ylabel=}};
+\pic at (\xposD, 0, \zshift) {Box={name=dwinv2, fill=DWInvColor, height=22, width=4, depth=22, xlabel={{"DepthWise Inverse",""}}, ylabel=}};
+
+
+% --- Sum模块 ---
+\pic at (\xposE, 0, 0) {RightBandedBox={name=sum, fill=SumColor, height=25, width={4}, depth=25, xlabel={{"Sum",""}}, ylabel=}};
+\end{pgfonlayer}
+
+% ====================================================================================
+%                Stage 2: Connections
+% ====================================================================================
+\begin{pgfonlayer}{background}
+
+% --- Input and Split Point ---
+\node (input_label) at (-5, 0, 0) [font=\Large] {Input};
+\coordinate (input_point) at (-4, 0, 0);
+\coordinate (split_point) at (-2, 0, 0);
+\draw[connection, midarrow] (input_point) -- (split_point);
+
+% --- Split to Layer 1 ---
+\coordinate (turn_point_upper_1) at (-2, 0, \zshift);
+\coordinate (turn_point_lower_1) at (-2, 0, -\zshift);
+\draw[connection, midarrow] (split_point) -- (turn_point_upper_1) -- (conv1x1-anchor);
+\draw[connection, midarrow] (split_point) -- (turn_point_lower_1) -- (conv3x3_1-anchor);
+
+% --- Inter-Layer Connections ---
+% Top Branch
+\draw[connection, midarrow] (conv1x1-anchor) -- (dwinv1-anchor);
+\draw[connection, midarrow] (dwinv1-anchor) -- (tsm-anchor);
+\draw[connection, midarrow] (tsm-anchor) -- (dwinv2-anchor);
+% Bottom Branch
+\draw[connection, midarrow] (conv3x3_1-anchor) -- (conv3x3_2-anchor);
+
+% --- Layer 2 to Merge Point ---
+\coordinate (merge_point) at (\xposE-2, 0, 0);
+\coordinate (turn_point_upper_2) at (\xposE-2, 0, \zshift);
+\coordinate (turn_point_lower_2) at (\xposE-2, 0, -\zshift);
+
+% 连接来自两个分支的最终输出 (dwinv2 和 conv3x3_2)
+\draw[connection, midarrow] (dwinv2-anchor) -- (turn_point_upper_2) -- (merge_point);
+\draw[connection, midarrow] (conv3x3_2-anchor) -- (turn_point_lower_2) -- (merge_point);
+\draw[connection, midarrow] (merge_point) -- (sum-anchor);
+
+% --- Output Point ---
+\coordinate (output_point) at ($(sum-east)+(2,0,0)$);
+\node (output_label) at ($(output_point)+(1,0,0)$) [font=\Large] {Output};
+\draw[connection, midarrow] (sum-anchor) -- (output_point);
+
+\end{pgfonlayer}
+\node at (current bounding box.south) [below=10pt, font=\Huge\bfseries\itshape] {BFCM};
+\end{tikzpicture}
+\end{document}

@@ -1,0 +1,89 @@
+\documentclass[border=15pt, multi, tikz]{standalone}
+
+% 加载所需的包和库
+\usepackage{import}
+\usetikzlibrary{positioning, calc, decorations.markings}
+
+\subimport{../layers/}{init} 
+
+\definecolor{InputColor}{RGB}{200,200,200}
+\definecolor{ConvColor}{RGB}{156,201,229}
+\definecolor{ConvReluColor}{RGB}{179,205,224}
+\definecolor{TSMColor}{RGB}{255,228,181}
+\definecolor{SumColor}{RGB}{150,223,150}
+
+\pgfdeclarelayer{background}
+\pgfdeclarelayer{main}
+\pgfsetlayers{background,main}
+
+\begin{document}
+
+\begin{tikzpicture}[
+    block/.style={font=\Large},
+    connection/.style={
+        ultra thick, 
+        draw=black, 
+        opacity=0.6,
+        -latex
+    },
+    midarrow/.style={
+        decoration={
+            markings,
+            mark=at position 0.5 with {\arrow{latex}}
+        },
+        postaction={decorate}
+    }
+]
+
+\def\zshift{4.0}
+\def\xstepA{0.0}
+\def\xstepB{4.0}
+\def\xstepC{8.0}
+
+\begin{pgfonlayer}{main}
+\pic at (\xstepA, 0, -\zshift) {RightBandedBox={name=conv3x3_1, fill=ConvColor, bandfill=ConvReluColor, height=22, width={4,0}, depth=22, xlabel={{"3$\times$3$\times$3 Conv",""}}, ylabel=}};
+
+\pic at (\xstepB, 0, -\zshift) {RightBandedBox={name=conv3x3_2, fill=ConvColor, bandfill=ConvReluColor, height=22, width={4,0}, depth=22, xlabel={{"3$\times$3$\times$3 Conv",""}}, ylabel=}};
+
+\pic at (\xstepA, 0, \zshift) {RightBandedBox={name=conv1x1, fill=ConvColor, bandfill=ConvReluColor, height=22, width={4,0}, depth=22, xlabel={{"1$\times$1$\times$1 Conv",""}}, ylabel=}};
+
+\pic at (\xstepB, 0, \zshift) {Box={name=tsm, fill=TSMColor, height=22, width={4}, depth=22, xlabel={{"TSM",""}}, ylabel=}};
+
+\pic at (\xstepC, 0, 0) {RightBandedBox={name=sum, fill=SumColor, height=25, width={4}, depth=25, xlabel={{"Sum",""}}, ylabel=}};
+\end{pgfonlayer}
+
+
+\begin{pgfonlayer}{background}
+
+\node (input_label) at (-5, 0, 0) [font=\Large] {Input};
+\coordinate (input_point) at (-4, 0, 0);
+\coordinate (split_point) at (-2, 0, 0);
+\draw[connection, midarrow] (input_point) -- (split_point);
+
+\coordinate (turn_point_upper_1) at (-2, 0, \zshift);
+\coordinate (turn_point_lower_1) at (-2, 0, -\zshift);
+
+\draw[connection, midarrow] (split_point) -- (turn_point_upper_1) -- (conv1x1-anchor);
+\draw[connection, midarrow] (split_point) -- (turn_point_lower_1) -- (conv3x3_1-anchor);
+
+\draw[connection, midarrow] (conv1x1-anchor) -- (tsm-anchor);
+\draw[connection, midarrow] (conv3x3_1-anchor) -- (conv3x3_2-anchor);
+
+\coordinate (merge_point) at (\xstepC-0.5, 0, 0);
+
+\coordinate (turn_point_upper_2) at (\xstepC-0.5, 0, \zshift);
+\coordinate (turn_point_lower_2) at (\xstepC-0.5, 0, -\zshift);
+
+\draw[connection, midarrow] (tsm-anchor) -- (turn_point_upper_2) -- (merge_point);
+\draw[connection, midarrow] (conv3x3_2-anchor) -- (turn_point_lower_2) -- (merge_point);
+
+\draw[connection, midarrow] (merge_point) -- (sum-anchor);
+
+\coordinate (output_point) at ($(sum-east)+(2,0,0)$);
+\node (output_label) at ($(output_point)+(1,0,0)$) [font=\Large] {Output};
+\draw[connection, midarrow] (sum-anchor) -- (output_point);
+
+\end{pgfonlayer}
+\node at (current bounding box.south) [below=10pt, font=\Huge\bfseries\itshape] {FFCM};
+\end{tikzpicture}
+\end{document}

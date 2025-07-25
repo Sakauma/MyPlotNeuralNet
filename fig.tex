@@ -11,6 +11,9 @@
 \usetikzlibrary{positioning,calc}
 \usepackage{graphicx}
 \usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{fit}
+\usetikzlibrary{shadows.blur}
+\usetikzlibrary{backgrounds} 
 
 % 定义一系列颜色变量，用于不同类型的神经网络层，方便统一修改和管理
 \def\FFCMColor{rgb,255:red,173;green,216;blue,230}      % 卷积层颜色 (用于 FFCM)
@@ -46,6 +49,15 @@
 % 'copyconnection' 用于跳跃连接的线
 \tikzstyle{copyconnection}=[ultra thick,every node/.style={sloped,allow upside down},draw={rgb:blue,4;red,1;green,1;black,3},opacity=0.7]
 
+% 定义一个名为 framebox 的样式，用于绘制圆角虚线框
+\tikzstyle{framebox} = [
+    draw=gray,                  % 边框颜色
+    rounded corners=15pt,       % <-- 在此调整圆角大小
+    line width=1.2pt,           % <-- 在此调整线条粗细
+    dash pattern=on 6pt off 4pt, % <-- 在此调整虚线间隔 (画6pt，空4pt)
+    blur shadow={shadow blur steps=5} % 给边框加一点模糊阴影，让它更突出
+]
+
 % 定义两种在连接线中间使用的箭头
 \newcommand{\copymidarrow}{\tikz \draw[-Stealth,line width =0.8mm,draw={rgb:blue,4;red,1;green,1;black,3}] (-0.3,0) -- ++(0.3,0);}
 
@@ -59,7 +71,8 @@
         fill=\FFCMColor,bandfill=\ConvReluColor,
         height=\BlockHeight,width={\EncoderWidthScale*4,0},depth=\BlockHeight}};
 
-\coordinate (input_center) at ($(FFCM1-anchor) + (0, -10)$);
+%\coordinate (input_center) at ($(FFCM1-anchor) + (0, -10)$);
+\coordinate (input_center) at ($(FFCM1-anchor) + (2.5cm, 10)$);
 \coordinate (image_input_center) at ($(input_center) + (-1.1cm, 0)$);
 
 \node[anchor=east] (img2) at ($(image_input_center) - (0.1cm,0)$)
@@ -71,11 +84,13 @@
 \node[right=0.2cm of ellipsis] (img3)
     {\includegraphics[width=1.6cm]{pic/图片3.png}};
     
-\draw [decorate, decoration={brace, mirror, amplitude=8pt, raise=4pt}, ultra thick, draw=\edgecolor]
-    (img1.south west) -- (img3.south east)
-    node[midway, below=12pt] (input_brace_label) {\Large $Input: D=5$};
-\coordinate (arrow_start_point) at ($(input_center |- img1.north) + (0, -0.1cm) + (-1.55cm, 0)$);
-\coordinate (arrow_end_point) at ($(FFCM1-south) - (0, 2.0cm) + (-1.55cm, 0)$);
+\draw [decorate, decoration={brace, amplitude=8pt, raise=4pt}, ultra thick, draw=\edgecolor]
+    (img1.north west) -- (img3.north east)
+    node[midway, above=12pt] (input_brace_label) {\Large\bfseries\itshape Input: D=5};
+    
+\coordinate (arrow_start_point) at ($(input_center |- img1.south) + (0, -0.1cm) + (-3.1cm, 0cm)$);
+\coordinate (arrow_end_point) at ($(FFCM1-north) + (0, 0.5cm) + (-0.6cm, 1cm)$);
+
 \draw[-{Stealth[length=3mm, width=2mm]}, ultra thick, draw=\edgecolor]
     (arrow_start_point) -- (arrow_end_point)
     node[midway, left=2mm] {};
@@ -226,7 +241,7 @@ xlabel="1",ylabel=256x256,labelpos=0.92,labelyshift=-12pt,
 fill=\SoftmaxColor,height=\BlockHeight,width=\DecoderWidthScale*2.3,depth=\BlockHeight}};
 
 
-\coordinate (output_center) at ($(output-anchor) + (0, -10)$);
+\coordinate (output_center) at ($(output-anchor) + (0, 10)$);
 \coordinate (image_output_center) at ($(output_center) + (-1.1cm, 0)$);
 
 \node[anchor=east] (out_img2) at ($(image_output_center) - (0.1cm,0)$)
@@ -238,11 +253,13 @@ fill=\SoftmaxColor,height=\BlockHeight,width=\DecoderWidthScale*2.3,depth=\Block
 \node[right=0.2cm of out_ellipsis] (out_img3)
     {\includegraphics[width=1.6cm]{pic/图片6.png}};
     
-\draw [decorate, decoration={brace, mirror, amplitude=8pt, raise=4pt}, ultra thick, draw=\edgecolor]
-    (out_img1.south west) -- (out_img3.south east)
-    node[midway, below=12pt] {\Large $Output: D=5$};
-\coordinate (arrow_output_start) at ($(output-south) - (0, 2.0cm) + (-1.55cm, 0)$);
-\coordinate (arrow_output_end) at ($(output_center |- out_img1.north) + (0, -0.1cm) + (-1.55cm, 0)$);
+\draw [decorate, decoration={brace, amplitude=8pt, raise=4pt}, ultra thick, draw=\edgecolor]
+    (out_img1.north west) -- (out_img3.north east)
+    node[midway, above=12pt] {\Large\bfseries\itshape Output: D=5};
+
+\coordinate (arrow_output_start) at ($(output-north) + (1.5cm, 1.8cm)$);
+\coordinate (arrow_output_end) at ($(output_center |- out_img1.south) + (0, -0.1cm) + (1.5cm, 0.2cm)$);
+
 \draw[-{Stealth[length=3mm, width=2mm]}, ultra thick, draw=\edgecolor]
     (arrow_output_start) -- (arrow_output_end);
 
@@ -285,9 +302,34 @@ fill=\SoftmaxColor,height=\BlockHeight,width=\DecoderWidthScale*2.3,depth=\Block
 -- node {\copymidarrow} (Cnode4-north);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% 6. 绘制图例 (Legend)
+%% 7. 绘制小模块
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% --- 定义一个中心锚点，位于瓶颈层下方，用于放置PDF ---
+
+\coordinate (pdf_anchor) at ($(FFCM5-south) + (1cm, -4cm)$);
+
+% --- 放置第一个PDF (左侧) ---
+% anchor=north east 表示节点的右上角将对齐到指定坐标
+\node(pdf_ffcm)[anchor=north east] at ($(pdf_anchor) - (1cm, -1.8cm)$) {
+    \includegraphics[
+        width=15cm,  % <-- 设置第一个PDF的宽度
+        page=1          % <-- 如果是多页PDF，指定页码
+    ]{modules/FFCM.pdf} % <-- 替换为你的第一个PDF文件名
+};
+
+% --- 放置第二个PDF (右侧) ---
+% anchor=north west 表示节点的左上角将对齐到指定坐标
+\node(pdf_bfcm)[anchor=north west] at ($(pdf_anchor) - (0cm, -1cm)$) {
+    \includegraphics[
+        width=16.5cm,  % <-- 设置第二个PDF的宽度
+        page=1
+    ]{modules/BFCM.pdf} % <-- 替换为你的第二个PDF文件名
+};
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\coordinate (legend_pos_1) at ($(input_brace_label) + (-0.8cm, -2.5cm)$);
+%% 8. 绘制图例 (Legend)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\coordinate (legend_pos_1) at ($(pdf_anchor) + (-13.5cm, -11cm)$);
 \coordinate (legend_pos_2) at ($(legend_pos_1) + (8cm, 0)$);
 \coordinate (legend_pos_3) at ($(legend_pos_2) + (8cm, 0)$);
 \coordinate (legend_pos_4) at ($(legend_pos_3) + (9.6cm, 0)$);
@@ -309,10 +351,31 @@ fill=\SoftmaxColor,height=\BlockHeight,width=\DecoderWidthScale*2.3,depth=\Block
     depth=14, scale=0.2, caption={}, xlabel={{"",""}},
 }};
 
-\node[anchor=west] at ($(lgd_pool-east) + (1.2cm, 0)$) {\Large $Pooling$};
-\node[anchor=west] at ($(lgd_upsample-east) + (1.2cm, 0)$) {\Large $Upsampling$};
-\node[anchor=west] at ($(lgd_concat-east) + (1cm, 0)$) {\Large $Channelwise  \ \ Concat$};
-\node[anchor=west] at ($(lgd_sigmoid-east) + (1cm, 0)$) {\Large $Sigmoid$};
+\node[anchor=west] at ($(lgd_pool-east) + (1.2cm, 0)$) {\Large\bfseries\itshape Pooling};
+\node[anchor=west] at ($(lgd_upsample-east) + (1.2cm, 0)$) {\Large\bfseries\itshape Upsampling};
+\node[anchor=west] at ($(lgd_concat-east) + (1cm, 0)$) {\Large\bfseries\itshape Channelwise  \ \ Concat};
+\node(legend_text_4)[anchor=west] at ($(lgd_sigmoid-east) + (1cm, 0)$) {\Large\bfseries\itshape Sigmoid};
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 9. 绘制三个部分的边框
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{scope}[on background layer]
+\coordinate (top_anchor) at ($(img1)-(1cm,-3.5cm)$);
+\coordinate (bottom_anchor) at ($(input_brace_label.south)-(0,18.5cm)$);
+\node[framebox, fit=(top_anchor) (out_img3) (bottom_anchor), inner sep=20pt]{};
+
+\coordinate (left_anchor) at ($(pdf_ffcm)-(6.25cm,-4cm)$);
+\coordinate (right_anchor) at ($(pdf_bfcm)-(10cm,3.5cm)$);
+\node[framebox, fit=(left_anchor) (right_anchor), inner sep=25pt]{};
+
+\coordinate (left_anchor) at ($(pdf_ffcm)-(-9cm,-4cm)$);
+\coordinate (right_anchor) at ($(pdf_bfcm)-(-7.3cm,3.5cm)$);
+\node[framebox, fit=(left_anchor) (right_anchor), inner sep=25pt]{};
+
+\coordinate (lgd_left_anchor) at ($(lgd_pool-west)-(1.8cm,-2.3cm)$);
+\coordinate (lgd_right_anchor) at ($(legend_text_4)-(-1cm,2cm)$);
+\node[framebox, fit=(lgd_left_anchor) (lgd_right_anchor), inner sep=15pt]{};
+\end{scope} 
 
 \end{tikzpicture}
 \end{document}
